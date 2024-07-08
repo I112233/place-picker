@@ -1,32 +1,14 @@
 import React, { useState, useRef, useEffect } from "react";
 import Header from "./Components/Header/Header";
 import Places from "./Components/Places/Places";
-import { AVAILABLE_PLACES } from "./data";
 import Modal from "./Components/Modal/Modal";
 import DeleteConfirmation from "./Components/DeleteConfirmation/DeleteConfirmation";
-import { sortPlacesByDistance } from "./location";
-
-const storedIds = JSON.parse(localStorage.getItem("selectedPlace")) || [];
-const storedPlaces = storedIds.map((id) =>
-    AVAILABLE_PLACES.find((place) => place.id === id)
-);
+import AvailablePlaces from "./Components/AvailablePlaces/AvailablePlaces";
 
 function App() {
     const modal = useRef();
     const selectedPlace = useRef();
-    const [pickedPlaces, setPickedPlaces] = useState(storedPlaces);
-    const [availablePlaces, setAvailablePlaces] = useState([]);
-
-    useEffect(() => {
-        navigator.geolocation.getCurrentPosition((position) => {
-            const sortedPlaces = sortPlacesByDistance(
-                AVAILABLE_PLACES,
-                position.coords.latitude,
-                position.coords.longitude
-            );
-            setAvailablePlaces(sortedPlaces);
-        });
-    }, []);
+    const [userPlaces, setUserPlaces] = useState([]);
 
     function handleStartRemovePlace(id) {
         modal.current.open();
@@ -38,7 +20,7 @@ function App() {
     }
 
     function handleSelectPlace(id) {
-        setPickedPlaces((prevPickedPlaces) => {
+        setUserPlaces((prevPickedPlaces) => {
             if (prevPickedPlaces.some((place) => place.id === id)) {
                 return prevPickedPlaces;
             }
@@ -52,7 +34,7 @@ function App() {
     }
 
     function handleRemovePlace() {
-        setPickedPlaces((prevPickedPlaces) =>
+        setUserPlaces((prevPickedPlaces) =>
             prevPickedPlaces.filter((place) => place.id !== selectedPlace.current)
         );
         modal.current.close();
@@ -78,14 +60,10 @@ function App() {
                 <Places
                     title="I'd like to visit..."
                     fallBackText="Select the places you would like to visit below."
-                    places={pickedPlaces}
+                    places={userPlaces}
                     onSelectPlace={handleStartRemovePlace}
                 />
-                <Places
-                    title="Available places"
-                    places={availablePlaces}
-                    onSelectPlace={handleSelectPlace}
-                />
+                <AvailablePlaces onSelectPlace={handleSelectPlace} />
             </main>
         </>
     );
